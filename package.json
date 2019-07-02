@@ -1,0 +1,22 @@
+{
+  "name": "simple-data-store",
+  "version": "1.0.0",
+  "description": "A simple data store for state management.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "keywords": [
+    "state",
+    "immutable"
+  ],
+  "author": "Alan Lawrey",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/jest": "^24.0.15",
+    "jest": "^24.8.0",
+    "ts-jest": "^24.0.2",
+    "typescript": "^3.5.2"
+  }
+}
