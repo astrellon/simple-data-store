@@ -25,7 +25,7 @@ export abstract class BaseReducer<TState, TAction>
      *
      * @returns A new object that has the data of the original action combined with
      */
-    protected createAction(data: TAction): Action & TAction
+    public createAction(data: TAction): Action & TAction
     {
         return { ...data, type: this.actionType };
     }
@@ -79,23 +79,31 @@ export interface Action
 
 export default class DataStore<TState>
 {
-    public get currentState(): TState
-    {
-        return this._currentState;
-    }
-    private _currentState: TState;
+    private currentState: TState;
     private reducers: { [actionType: string]: BaseReducer<TState, any> } = {};
     private callbacks: Array<{selector: SelectorContext<TState>, callback: Callback<TState>}>  = [];
 
     constructor (initialState: TState)
     {
-        this._currentState = initialState;
+        this.currentState = initialState;
+    }
+
+    /**
+     * Returns the current state.
+     *
+     * @returns The current state.
+     */
+    public state(): Readonly<TState>
+    {
+        return this.currentState;
     }
 
     /**
      * Removes all subscriptions and reducers from the store.
+     *
+     * Mostly used for tests where you want to remove all references to the store.
      */
-    public close ()
+    public removeAll ()
     {
         this.callbacks = [];
         this.reducers = {};
@@ -157,15 +165,15 @@ export default class DataStore<TState>
         }
         else
         {
-            this._currentState = reducer.execute(this._currentState, action);
+            this.currentState = reducer.execute(this.currentState, action);
         }
 
         for (const callback of this.callbacks)
         {
-            const newValue = callback.selector.getValue(this._currentState);
+            const newValue = callback.selector.getValue(this.currentState);
             if (callback.selector.checkIfChanged(newValue))
             {
-                callback.callback(this._currentState, newValue);
+                callback.callback(this.currentState, newValue);
             }
         }
     }
@@ -180,7 +188,7 @@ export default class DataStore<TState>
      */
     public subscribe (selector: Selector<TState>, callback: Callback<TState>, comparer: SelectorComparer<TState> = null): RemoveCallback
     {
-        const startValue = selector(this._currentState);
+        const startValue = selector(this.currentState);
         const obj = { selector: new SelectorContext(selector, startValue, comparer), callback };
         this.callbacks.push(obj);
 

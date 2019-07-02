@@ -26,8 +26,6 @@ store.addReducer(Counter);
 store.addReducer(AddTodo);
 store.addReducer(RemoveTodo);
 
-store.currentState
-
 const unsubscribeAny = store.subscribeAny(
     (state) => console.log('Sub Any', state)
 );
