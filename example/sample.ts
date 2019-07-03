@@ -1,7 +1,7 @@
 import DataStore from "../src";
-import { Counter } from "./counter";
-import { AddTodo } from "./addTodo";
-import { RemoveTodo } from "./removeTodo";
+import { inc, dec } from "./counter";
+import { addTodo } from "./addTodo";
+import { removeTodo } from "./removeTodo";
 
 export interface TodoItem
 {
@@ -22,9 +22,6 @@ const defaultStore: SimpleState =
 }
 
 const store = new DataStore<SimpleState>(defaultStore);
-store.addReducer(Counter);
-store.addReducer(AddTodo);
-store.addReducer(RemoveTodo);
 
 const unsubscribeAny = store.subscribeAny(
     (state) => console.log('Sub Any', state)
@@ -34,13 +31,13 @@ const unsubscribeCounter = store.subscribe(
     (state) => console.log('Sub Counter', state)
 );
 
-store.dispatch(Counter.inc());
-store.dispatch(Counter.inc());
-store.dispatch(Counter.dec());
+store.execute(inc());
+store.execute(inc());
+store.execute(dec());
 
-store.dispatch(AddTodo.action({text: 'Item 1', id: 0}));
-store.dispatch(AddTodo.action({text: 'Item 2', id: 1}));
-store.dispatch(RemoveTodo.action(0));
+store.execute(addTodo({text: 'Item 1', id: 0}));
+store.execute(addTodo({text: 'Item 2', id: 1}));
+store.execute(removeTodo(0));
 
 /* Example output:
 Sub Any { counter: 1, todos: [] }

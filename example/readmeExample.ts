@@ -1,51 +1,34 @@
-import DataStore, { BaseReducer } from "../src";
-
-interface ReducerAction
-{
-    change: number;
-}
-
-class CounterReducer extends BaseReducer<SimpleState, ReducerAction>
-{
-    public inc()
-    {
-        // This is a shortcut for saying
-        // return { type: 'COUNTER', change: 1 };
-        return this.createAction({change: 1});
-    }
-
-    public dec()
-    {
-        return this.createAction({change: -1});
-    }
-
-    public execute (state: SimpleState, action: ReducerAction): SimpleState
-    {
-        return { ...state, counter: state.counter + action.change };
-    }
-}
-const Counter = new CounterReducer('COUNTER');
+import DataStore from "../src";
 
 interface SimpleState
 {
     readonly counter: number;
 }
 
-const defaultStore: SimpleState = {
-    counter: 0
+function change(value: number)
+{
+    return (state: SimpleState) => ({ counter: state.counter + value });
 }
 
-const store = new DataStore<SimpleState>(defaultStore);
-store.addReducer(Counter);
+const store = new DataStore<SimpleState>
+({
+    counter: 0
+});
+
+// History is disabled by default
+store.setEnableHistory(true);
 
 store.subscribeAny((state) => console.log(state));
 
-store.dispatch(Counter.inc());
-store.dispatch(Counter.inc());
-store.dispatch(Counter.dec());
+store.execute(change(1));
+store.execute(change(2));
+store.execute(change(-1));
+
+store.historyBack();
 
 /* Example output:
 { counter: 1 }
+{ counter: 3 }
 { counter: 2 }
-{ counter: 1 }
+{ counter: 3 }
 */

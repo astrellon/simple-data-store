@@ -1,26 +1,12 @@
-import { BaseReducer } from '../src/index';
 import { SimpleState } from './sample';
+import { Modifier } from '../src';
 
-interface ReducerAction
+export function inc()
 {
-    change: number;
+    return (state: SimpleState) => ({ counter: state.counter + 1 });
 }
 
-class Reducer extends BaseReducer<SimpleState, ReducerAction>
+export function dec()
 {
-    public inc()
-    {
-        return this.createAction({change: 1});
-    }
-
-    public dec()
-    {
-        return this.createAction({change: -1});
-    }
-
-    public execute (state: SimpleState, action: ReducerAction): SimpleState
-    {
-        return { ...state, counter: state.counter + action.change };
-    }
+    return (state: SimpleState) => ({ counter: state.counter - 1 });
 }
-export const Counter = new Reducer('COUNTER');

@@ -1,23 +1,10 @@
-import { BaseReducer } from '../src/index';
 import { SimpleState, TodoItem } from './sample';
 
-interface ReducerAction
+export function addTodo(todoItem: TodoItem)
 {
-    readonly todoItem: TodoItem;
-}
-
-class Reducer extends BaseReducer<SimpleState, ReducerAction>
-{
-    public action(todoItem: TodoItem)
+    return (state: SimpleState) =>
     {
-        return this.createAction({ todoItem });
-    }
-
-    public execute (state: SimpleState, action: ReducerAction): SimpleState
-    {
-        const todos = [ ...state.todos, action.todoItem ];
-        return { ...state, todos};
+        const todos = [ ...state.todos, todoItem ];
+        return { todos };
     }
 }
-
-export const AddTodo = new Reducer('ADD_TODO');

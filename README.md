@@ -3,15 +3,31 @@ A Typescript based simple data store for state management.
 
 My alternative to redux and other state management.
 
+## Install
+To get from npm simply run.
+```sh
+npm install --save simple-data-store
+```
+
+Alternatively you can download the code and build it yourself with
+```sh
+npm run build
+```
+And in the `dist` folder will be the Javascript and Typescript typings file.
+
+Also the whole thing is one Typescript file so it's pretty easy to manually add it to your own source code.
+
 ## Features
 - Small file size (about 1kb after compression)
 - Immutable
 - Simple API
-- More structure than something like Redux, keeps things simple once you have dozens of reducers.
+- More structure than something like Redux, keeps things simple once you have dozens of reducers/modifiers.
 - No dependencies
 
+## Missing Features
+- No way to replay history on another computer or session, this may not ever be possible without further work.
+
 ## Todo
-- History support
 - More advanced features like thunk, but that's to be decided.
 
 ## Why?
@@ -19,68 +35,47 @@ Do we ever need more JS/TS libraries?
 
 I like what redux and other functional state management libraries have done for UI but I found them too unstructured and too generalised. So I put together my own version that is still general but puts just enough structure to fulfil my needs.
 
-The only thing missing is history support at the moment and that should not be a big task, it's just not been needed.
-
 ## Example
-The main difference between this store and others like redux is that there is only one reducer that runs for any action. Which means that there's no need to combine reducers and have each one check if the action running is one that you want to manipulate.
+Reducers are functions that perform an action on the state. This means that the state does not need to know about reducers at all.
 
-While there is a bit of boiler plate each reducer is fairly simple and you know that the reducer type should be correct. As shown in the `Counter` example, you can make the reducer and it's action as complicated as needed or in the case of the `Todo` you can do things like adding and removing as two separate actions. However you could always do that in the one and make the action interface more complicated.
+In the example below it is shown that creating a function that returns the reducer with the values in the closure is useful.
 
 ```typescript
-import DataStore, { BaseReducer } from "../src";
-
-interface ReducerAction
-{
-    change: number;
-}
-
-class CounterReducer extends BaseReducer<SimpleState, ReducerAction>
-{
-    public inc()
-    {
-        // This is a shortcut for saying
-        // return { type: 'COUNTER', change: 1 };
-        return this.createAction({change: 1});
-    }
-
-    public dec()
-    {
-        return this.createAction({change: -1});
-    }
-
-    public execute (state: SimpleState, action: ReducerAction): SimpleState
-    {
-        return { ...state, counter: state.counter + action.change };
-    }
-}
-const Counter = new CounterReducer('COUNTER');
+import DataStore from "../src";
 
 interface SimpleState
 {
     readonly counter: number;
 }
 
-const defaultStore: SimpleState = {
-    counter: 0
+function change(value: number)
+{
+    return (state: SimpleState) => ({ counter: state.counter + value });
 }
 
-const store = new DataStore<SimpleState>(defaultStore);
-store.addReducer(Counter);
+const store = new DataStore<SimpleState>
+({
+    counter: 0
+});
+
+// History is disabled by default
+store.setEnableHistory(true);
 
 store.subscribeAny((state) => console.log(state));
 
-store.dispatch(Counter.inc());
-store.dispatch(Counter.inc());
-store.dispatch(Counter.dec());
+store.execute(change(1));
+store.execute(change(2));
+store.execute(change(-1));
+
+store.historyBack();
 
 /* Example output:
 { counter: 1 }
+{ counter: 3 }
 { counter: 2 }
-{ counter: 1 }
+{ counter: 3 }
 */
 ```
-
-Whilst perhaps not as elegant as a simple redux example, the enforced structure of adding reducers to the store does not become any more complex as there are more added. Additionally it also means that you don't end up with the potential of having many reducer function calls all just to check if the action type is correct.
 
 There is a longer example at `example/sample.ts`.
 
@@ -88,54 +83,33 @@ There is a longer example at `example/sample.ts`.
 
 ### Types
 ```typescript
+// A function to create a patch for the state.
+// Meaning this should return a partial state to be merged with the current state.
+export type Modifier<TState> = (state: TState) => Partial<TState> | null;
+
 // A function that takes part of the state and returns a sub set of that state.
 // Used to look for specific parts of the state that have changed.
-type Selector<TState> = (state: TState) => any;
+export type Selector<TState> = (state: TState) => any;
 
 // A function used to compare if two parts of the state have actually changed.
 // By default a strict equals is used when comparing however sometimes something more complex is needed.
-type SelectorComparer<TState> = (prevValue: TState, newValue: TState) => boolean;
+export type SelectorComparer<TState> = (prevValue: TState, newValue: TState) => boolean;
 
 // A callback function to be triggered when a selector has returned a new value.
 // The callback is given the new state and result of the selector that triggered the callback.
-type Callback<TState> = (state: TState, newValue: any) => void;
+export type Subscription<TState> = (state: TState, newValue: any) => void;
 
-// A function used to remove a subscribedd callback. This can be called multiple times.
-type RemoveCallback = () => void;
-
-// A function used to remove a reducer. This can be called multiple times.
-type RemoveReducer = () => void;
-```
-
-### BaseReducer
-The BaseReducer class is the abstract base class for all reducers. A reducer needs to define an `execute` method for modifying the state based on an action and for setting the `actionType` string which sets when it will be called.
-
-```typescript
-interface ReducerAction
-{
-    value: number;
-}
-
-class Reducer extends BaseReducer<State, ReducerAction>
-{
-    public change(value: number)
-    {
-        return this.createAction({value});
-    }
-
-    public execute (state: SimpleState, action: ReducerAction): SimpleState
-    {
-        return { ...state, counter: state.counter + action.value };
-    }
-}
-export const Counter = new Reducer('COUNTER');
+// A function used to remove a subscription. This can be called multiple times.
+export type RemoveSubscription = () => void;
 ```
 
 ### DataStore
-The data store is effectively just a container for the current state, the map of reducers and list of subscribers.
+The main data store class. Keeps track of the current state, any subscriptions and optionally a history of the state.
+
+By default history is disabled.
 
 #### Constructor
-`initialState: TState`: The initial state of the store.
+`initialState: TState` The initial state of the store.
 
 The constructor requires an initial state for the store that fits the store's state interface.
 
@@ -154,37 +128,105 @@ const store = new DataStore<State>({
 });
 ```
 
-#### addReducer
-`reducer: BaseReducer<TState>`: An instance of a reducer class.
-`returns: RemoveReducer`: Returns a function to remove the reducer from the store.
+#### state
+`returns: Readonly<TState>` The current state.
 
-This adds an instance of a reducer to the data store. If a reducer with the same `actionType` is added to the store an error is thrown.
+Returns the state marked specifically as readonly.
+The readonly part is not usually required but just to make it very clear.
 
-#### dispatch
-`action: Action`: The action to dispatch.
+#### execute
+`modifier: Modifier<TState>` The modifier function to patch the state with.
 
-This triggers a reducer to run based on the `type` set on the action. If no reducer matches that type a console.error is logged at the moment.
+Executes a modifier on the state.
+The modifier is recommended to return a partial state that is merged.
 
-#### tryDispatch
-`action?: Action`: The action to dispatch, or null/undefined.
+If the modifier returns the same state (as compared with strict equals) or null then
+the state is not updated nor is any subscription triggered.
 
-A helper function to call `dispatch` if the action is not null or undefined.
-There are a few cases where an action may or may not be null or undefined which can be useful for conditionally creating actions and thus conditionally dispatching them.
+#### setEnableHistory
+`enable: boolean` Enable or disable the history.
+`historyLimited?: number` Sets the limiter on the number of history items.
+
+Sets if history is enabled or not.
+There is a small performance penalty for using it and some amount of memory depending on the limiter.
+A history limiter of 0 (zero) or less means no limit.
+
+*NOTE*: The limiter is not a hard limit, but items will not be removed if the history length is less than the limiter.
+
+#### getHistory
+```typescript
+export interface HistoryState<TState>
+{
+    readonly items: HistoryItem<TState>[];
+    readonly limiter: number;
+    readonly index: number;
+    readonly enabled: boolean;
+}
+```
+`returns: HistoryState<TState>` Returns an object defining the current state of the history.
+
+Returns the current state of the history.
+
+#### clearHistory
+Clears the history list.
+
+#### historyBack
+Goes back one item in the history. If history is disabled or is at the start of the history nothing is triggered.
+
+#### historyForward
+Goes forward one item in the history. If the history is disabled or at the most recent item nothing is triggered.
+
+#### historyGoto
+`index: number` The history index to go to.
+
+Goes to the history index. If it is out of outs, the index is the same as the current one or history is disabled then nothing is trigged.
 
 #### subscribe
-`selector: Selector<TState>`: A function for picking the values out of the store you want to check when changed.
-`callback: Callback<TState>`: A callback that will be triggered when the values returned by the selector has changed.
-`comparer: SelectorComparer<TState>`: An optional comparer for the old and new values in the selector. Defaults to strict equals.
-`returns: RemoveCallback`: Returns a function to unsubscribe from the store.
+`selector: Selector<TState>` A function for picking the values out of the store you want to check when changed.
+`subscription: Subscription<TState>` A callback that will be triggered when the values returned by the selector has changed.
+`comparer: SelectorComparer<TState>` An optional comparer for the old and new values in the selector. Defaults to strict equals.
+`returns: RemoveSubscription` A function to remove the subscription from the store.
 
 Subscribe a callback to be triggered when a part of the state has changed.
 
+
+```typescript
+import DataStore from "../src";
+
+interface State
+{
+    age: number;
+    name: string;
+}
+
+const store = new DataStore<State>
+({
+    age: 30,
+    name: "Fluff"
+});
+
+store.subscribe((state) => state.age, (state, newAge) => console.log('New Age', newAge));
+store.subscribe((state) => state.name, (state, newName) => console.log('New Name', newName));
+
+store.execute((state) => ({age: 35}));
+store.execute((state) => ({name: "Puff"}));
+store.execute((state) => ({age: 40}));
+
+/* Example output
+New Age 35
+New Name Puff
+New Age 40
+*/
+```
+
 #### subscribeAny
-`callback: Callback<TState>`: A callback that will be triggered when the state has changed.
-`returns: RemoveCallback`: Returns a function to unsubscribe from the store.
+`subscription: Subscription<TState>` A callback that will be triggered when the state has changed.
+`returns: RemoveSubscription` A function to remove the subscription from the store.
 
 A shorthand subscribe function that will trigger the callback when the state changes at all.
 
+#### unsubscribeAll
+Removes all subscriptions from the store.
 
 ## License
 MIT
