@@ -4,9 +4,14 @@
   "description": "A simple data store for state management.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "unpkg": "dist/index.min.js",
+  "module": "dist/index.js",
+  "files": [
+    "dist"
+  ],
   "repository": "github:astrellon/simple-data-store",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc && uglifyjs -o dist/index.min.js --source-map filename=dist/input.js.map dist/index.js"
   },
   "keywords": [
     "state",
@@ -24,6 +29,7 @@
   "author": "Alan Lawrey",
   "license": "MIT",
   "devDependencies": {
-    "typescript": "^3.5.2"
+    "typescript": "^3.5.2",
+    "uglify-es": "^3.3.9"
   }
 }
