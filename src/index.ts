@@ -34,6 +34,9 @@ export interface HistoryState<TState>
     readonly enabled: boolean;
 }
 
+// An empty modifier, recommended to use when you want to return a modifier that does nothing.
+export const EmptyModifier: Modifier<any> = () => null;
+
 /**
  * The main data store class. Keeps track of the current state, any subscriptions and optionally a history of the state.
  *
