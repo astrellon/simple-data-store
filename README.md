@@ -28,6 +28,9 @@ Also the whole thing is one Typescript file so it's pretty easy to manually add 
 - No way to replay history on another computer or session, this may not ever be possible without further work.
 
 ## Todo
+- Better history features:
+  - A way to control when the history is recorded.
+  - A way to record just parts of the state, such as UI specific patches.
 - More advanced features like thunk, but that's to be decided.
 
 ## Why?
@@ -145,6 +148,7 @@ the state is not updated nor is any subscription triggered.
 
 #### setEnableHistory
 `enable: boolean` Enable or disable the history.
+
 `historyLimited?: number` Sets the limiter on the number of history items.
 
 Sets if history is enabled or not.
@@ -183,8 +187,11 @@ Goes to the history index. If it is out of outs, the index is the same as the cu
 
 #### subscribe
 `selector: Selector<TState>` A function for picking the values out of the store you want to check when changed.
+
 `subscription: Subscription<TState>` A callback that will be triggered when the values returned by the selector has changed.
+
 `comparer: SelectorComparer<TState>` An optional comparer for the old and new values in the selector. Defaults to strict equals.
+
 `returns: RemoveSubscription` A function to remove the subscription from the store.
 
 Subscribe a callback to be triggered when a part of the state has changed.
@@ -221,6 +228,7 @@ New Age 40
 
 #### subscribeAny
 `subscription: Subscription<TState>` A callback that will be triggered when the state has changed.
+
 `returns: RemoveSubscription` A function to remove the subscription from the store.
 
 A shorthand subscribe function that will trigger the callback when the state changes at all.
