@@ -11,7 +11,9 @@
   ],
   "repository": "github:astrellon/simple-data-store",
   "scripts": {
-    "build": "tsc && uglifyjs -o dist/index.min.js --source-map filename=dist/input.js.map dist/index.js"
+    "build": "tsc && uglifyjs -o dist/index.min.js --source-map filename=dist/input.js.map dist/index.js",
+    "test": "jest",
+    "coverage": "jest --coverage"
   },
   "keywords": [
     "state",
@@ -29,6 +31,10 @@
   "author": "Alan Lawrey",
   "license": "MIT",
   "devDependencies": {
+    "@types/jest": "^24.0.15",
+    "@types/node": "^12.0.12",
+    "jest": "^24.8.0",
+    "ts-jest": "^24.0.2",
     "typescript": "^3.5.2",
     "uglify-es": "^3.3.9"
   }
