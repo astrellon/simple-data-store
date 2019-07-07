@@ -12,7 +12,7 @@ export type SelectorComparer<TState> = (prevValue: TState, newValue: TState) => 
 
 // A callback function to be triggered when a selector has returned a new value.
 // The callback is given the new state and result of the selector that triggered the callback.
-export type Subscription<TState> = (state: TState, newValue: any) => void;
+export type Subscription<TState> = (state: TState, newValue: any, triggeringModifier: Modifier<TState>, isNewState: boolean) => void;
 
 // A function used to remove a subscription. This can be called multiple times.
 export type RemoveSubscription = () => void;
@@ -25,17 +25,17 @@ export interface HistoryItem<TState>
     readonly state: TState;
 }
 
-// An object that outlines the current state of the history.
-export interface HistoryState<TState>
-{
-    readonly items: HistoryItem<TState>[];
-    readonly limiter: number;
-    readonly index: number;
-    readonly enabled: boolean;
-}
-
 // An empty modifier, recommended to use when you want to return a modifier that does nothing.
 export const EmptyModifier: Modifier<any> = () => null;
+
+const EmptyFunction = () => {};
+
+// Pairing of the selector function and subscription callback.
+interface SubscriptionSelectorPair<TState>
+{
+    readonly selector: SelectorContext<TState>;
+    readonly subscription: Subscription<TState>;
+}
 
 /**
  * The main data store class. Keeps track of the current state, any subscriptions and optionally a history of the state.
@@ -45,16 +45,16 @@ export const EmptyModifier: Modifier<any> = () => null;
 export default class DataStore<TState>
 {
     private currentState: TState;
-    private subscriptions: Array<{selector: SelectorContext<TState>, subscription: Subscription<TState>}>  = [];
-    private history: HistoryItem<TState>[] = [];
-    private historyIndex: number = 0;
-    private enableHistory: boolean = false;
-    private historyLimiter: number = 100;
+    private subscriptions: Array<SubscriptionSelectorPair<TState>> = [];
 
-    constructor (initialState: TState)
+    /**
+     * Creates a new DataStore.
+     *
+     * @param initialState The starting values for the data store.
+     */
+    public constructor (initialState: TState)
     {
         this.currentState = initialState;
-        this.history.push({modifier: null, state: this.currentState});
     }
 
     /**
@@ -75,8 +75,9 @@ export default class DataStore<TState>
      * the state is not updated nor is any subscription triggered.
      *
      * @param modifier Modifier function to update the state with.
+     * @param isNewState Marks if this state is a new one. Can be used for history subscriptions to know if to record this state update or not.
      */
-    public execute(modifier: Modifier<TState>)
+    public execute(modifier: Modifier<TState>, isNewState: boolean = true)
     {
         const newState = modifier(this.currentState);
         if (newState == null || newState === this.currentState)
@@ -84,93 +85,8 @@ export default class DataStore<TState>
             return;
         }
 
-        this.updateState(Object.assign({}, this.currentState, newState));
-
-        if (this.enableHistory)
-        {
-            this.addToHistory({modifier: modifier, state: this.currentState});
-        }
-    }
-
-    /**
-     * Sets if history is enabled or not.
-     * There is a small performance penalty for using it and some amount of memory depending on the limiter.
-     * A history limiter of 0 (zero) or less means no limit.
-     *
-     * NOTE: The limiter is not a hard limit, but items will not be removed if the history length is less than the limiter.
-     *
-     * @param enable Enable recording history.
-     * @param historyLimiter Sets the limiter on the number of history items..
-     */
-    public setEnableHistory(enable: boolean, historyLimiter?: number)
-    {
-        this.enableHistory = enable;
-        if (typeof(historyLimiter) === 'number' && !isNaN(historyLimiter))
-        {
-            this.historyLimiter = historyLimiter;
-        }
-
-        if (!enable)
-        {
-            this.history = [];
-            this.historyIndex = 0;
-        }
-    }
-
-    /**
-     * Returns information about the history state.
-     *
-     * @returns An object defining the history state.
-     */
-    public getHistory(): HistoryState<TState>
-    {
-        return {
-            items: this.history,
-            limiter: this.historyLimiter,
-            index: this.historyIndex,
-            enabled: this.enableHistory
-        }
-    }
-
-    /**
-     * Clears the history list.
-     */
-    public clearHistory()
-    {
-        this.history = [];
-        this.historyIndex = 0;
-    }
-
-    /**
-     * Goes back one item in the history. If history is disabled or is at the start of the history nothing is triggered.
-     */
-    public historyBack()
-    {
-        this.historyGoto(this.historyIndex - 1);
-    }
-
-    /**
-     * Goes forward one item in the history. If the history is disabled or at the most recent item nothing is triggered.
-     */
-    public historyForward()
-    {
-        this.historyGoto(this.historyIndex + 1);
-    }
-
-    /**
-     * Goes to the history index. If it is out of outs, the index is the same as the current one or history is disabled then nothing is trigged.
-     *
-     * @param index The history index to go to.
-     */
-    public historyGoto(index: number)
-    {
-        if (!this.enableHistory || index < 0 || index >= this.history.length || index === this.historyIndex)
-        {
-            return;
-        }
-
-        this.historyIndex = index;
-        this.updateState(this.history[this.historyIndex].state);
+        this.currentState = Object.assign({}, this.currentState, newState);
+        this.triggerSubscriptions(modifier, isNewState);
     }
 
     /**
@@ -224,46 +140,159 @@ export default class DataStore<TState>
     }
 
     /**
-     * Updates the current state and triggers any subscriptions.
+     * Trigger all the subscriptions that an update has executed.
      *
-     * NOTE: Does not check if the state is the same.
-     *
-     * @param state The new state to set as the current.
+     * @param isNewState Marks if this update is for a new state or not. Used by history subscriptions to know if to record the state change or not.
      */
-    private updateState(state: TState)
+    private triggerSubscriptions(modifier: Modifier<TState>, isNewState: boolean)
     {
-        this.currentState = state;
-
         for (const subscription of this.subscriptions)
         {
             const newValue = subscription.selector.getValue(this.currentState);
             if (subscription.selector.checkIfChanged(newValue))
             {
-                subscription.subscription(this.currentState, newValue);
+                subscription.subscription(this.currentState, newValue, modifier, isNewState);
             }
         }
     }
+}
+
+/**
+ * Class for simplifying keeping a history of state changes in a store.
+ */
+export class HistoryStore<TState>
+{
+    public readonly store: DataStore<TState>;
+    public readonly limiter: number;
+
+    private items: HistoryItem<TState>[] = [];
+    private index: number = 0;
+    private unsub: RemoveSubscription = EmptyFunction;
+    private initialState: TState;
+
+    constructor (store: DataStore<TState>, limiter: number = 100)
+    {
+        this.store = store;
+        this.limiter = limiter;
+        this.initialState = store.state();
+
+        this.setEnabled(true);
+        this.clear();
+    }
+
+    /**
+     * Returns the current history index
+     */
+    public getIndex()
+    {
+        return this.index;
+    }
+
+    /**
+     * Returns the list of history items.
+     */
+    public getItems(): Readonly<HistoryItem<TState>[]>
+    {
+        return this.items;
+    }
+
+    /**
+     * Sets if the history is enabled or not.
+     *
+     * @param enabled Sets if the history is enabled or not.
+     */
+    public setEnabled(enabled: boolean)
+    {
+        this.unsub();
+        if (enabled)
+        {
+            this.unsub = this.store.subscribeAny((state: TState, newValue: any, triggeringModifier: Modifier<TState>, isNewState: boolean) =>
+            {
+                if (!isNewState)
+                {
+                    return;
+                }
+                this.addToHistory(triggeringModifier, state);
+            });
+        }
+        else
+        {
+            this.unsub = EmptyFunction;
+        }
+    }
+
+    /**
+     * Returns true if the history store is enabled or not.
+     */
+    public isEnabled()
+    {
+        return this.unsub !== EmptyFunction;
+    }
+
+    /**
+     * Clears the history list. Back to storing just the initial state.
+     */
+    public clear()
+    {
+        this.items = [{modifier: null, state: this.initialState}];
+        this.index = 0;
+    }
+
+    /**
+     * Goes back one item in the history. If history is disabled or is at the start of the history nothing is triggered.
+     */
+    public back()
+    {
+        this.goto(this.index - 1);
+    }
+
+    /**
+     * Goes forward one item in the history. If the history is disabled or at the most recent item nothing is triggered.
+     */
+    public forward()
+    {
+        this.goto(this.index + 1);
+    }
+
+    /**
+     * Goes to the history index. If it is out of outs, the index is the same as the current one or history is disabled then nothing is trigged.
+     *
+     * @param index The history index to go to.
+     */
+    public goto(index: number)
+    {
+        if (index < 0 || index >= this.items.length || index === this.index)
+        {
+            return;
+        }
+
+        this.index = index;
+
+        const historyItem = this.items[this.index].state;
+        this.store.execute((state) => historyItem, false);
+    }
+
 
     /**
      * Pushes a new history item into the history list.
      * If the history index is not at the most current then those are removed.
      * Also checks if the history is getting too long.
      *
-     * @param historyItem The history item to add.
+     * @param historyState The history item to add.
      */
-    private addToHistory(historyItem: HistoryItem<TState>)
+    private addToHistory(triggeringModifier: Modifier<TState>, historyState: TState)
     {
-        if (this.historyIndex < this.history.length - 1)
+        if (this.index < this.items.length - 1)
         {
-            this.history.splice(this.historyIndex, this.history.length);
+            this.items.splice(this.index, this.items.length);
         }
-        this.history.push(historyItem);
-        this.historyIndex = this.history.length - 1;
+        this.items.push({state: historyState, modifier: triggeringModifier});
+        this.index = this.items.length - 1;
 
-        if (this.historyLimiter > 0 && this.history.length > this.historyLimiter + 10)
+        if (this.limiter > 0 && this.items.length > this.limiter + 10)
         {
-            this.history.splice(0, 10);
-            this.historyIndex -= 10;
+            this.items.splice(0, 10);
+            this.index -= 10;
         }
     }
 }

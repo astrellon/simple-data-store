@@ -1,4 +1,4 @@
-import DataStore from ".";
+import DataStore, { HistoryStore } from ".";
 
 interface State
 {
@@ -8,7 +8,7 @@ interface State
 test('larger test involving different features', () =>
 {
     const store = new DataStore<State>({counter: 0});
-    store.setEnableHistory(true);
+    const historyStore = new HistoryStore<State>(store);
 
     expect(store.state().counter).toBe(0);
 
@@ -22,18 +22,18 @@ test('larger test involving different features', () =>
 
     expect(store.state().counter).toBe(4);
 
-    store.historyBack();
+    historyStore.back();
 
     expect(store.state().counter).toBe(7);
 
-    store.historyGoto(1);
+    historyStore.goto(1);
 
     expect(store.state().counter).toBe(1);
     expect(counterValues).toStrictEqual([1, 7, 4, 7, 1]);
 
     unsub();
 
-    store.setEnableHistory(false);
+    historyStore.setEnabled(false);
 
     store.execute((state) => ({counter: state.counter + 1}));
 

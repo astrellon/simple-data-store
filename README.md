@@ -44,7 +44,7 @@ Reducers are functions that perform an action on the state. This means that the 
 In the example below it is shown that creating a function that returns the reducer with the values in the closure is useful.
 
 ```typescript
-import DataStore from "../src";
+import DataStore, { HistoryStore } from "../src";
 
 interface SimpleState
 {
@@ -61,8 +61,9 @@ const store = new DataStore<SimpleState>
     counter: 0
 });
 
-// History is disabled by default
-store.setEnableHistory(true);
+// History store is kind of like an extension.
+// Really it's just an application of the subscribeAny and execute methods.
+const historyStore = new HistoryStore<SimpleState>(store, 100);
 
 store.subscribeAny((state) => console.log(state));
 
@@ -70,7 +71,7 @@ store.execute(change(1));
 store.execute(change(2));
 store.execute(change(-1));
 
-store.historyBack();
+historyStore.back();
 
 /* Example output:
 { counter: 1 }
@@ -96,7 +97,7 @@ export type Selector<TState> = (state: TState) => any;
 
 // A function used to compare if two parts of the state have actually changed.
 // By default a strict equals is used when comparing however sometimes something more complex is needed.
-export type SelectorComparer<TState> = (prevValue: TState, newValue: TState) => boolean;
+export type Subscription<TState> = (state: TState, newValue: any, triggeringModifier: Modifier<TState>, isNewState: boolean) => void;
 
 // A callback function to be triggered when a selector has returned a new value.
 // The callback is given the new state and result of the selector that triggered the callback.
@@ -104,6 +105,14 @@ export type Subscription<TState> = (state: TState, newValue: any) => void;
 
 // A function used to remove a subscription. This can be called multiple times.
 export type RemoveSubscription = () => void;
+
+// An item in the history. Keeps track of the modifier that created the state.
+// A null modifier means the start of the history.
+export interface HistoryItem<TState>
+{
+    readonly modifier: Modifier<TState> | null;
+    readonly state: TState;
+}
 ```
 
 ### DataStore
@@ -157,34 +166,6 @@ A history limiter of 0 (zero) or less means no limit.
 
 *NOTE*: The limiter is not a hard limit, but items will not be removed if the history length is less than the limiter.
 
-#### getHistory
-```typescript
-export interface HistoryState<TState>
-{
-    readonly items: HistoryItem<TState>[];
-    readonly limiter: number;
-    readonly index: number;
-    readonly enabled: boolean;
-}
-```
-`returns: HistoryState<TState>` Returns an object defining the current state of the history.
-
-Returns the current state of the history.
-
-#### clearHistory
-Clears the history list.
-
-#### historyBack
-Goes back one item in the history. If history is disabled or is at the start of the history nothing is triggered.
-
-#### historyForward
-Goes forward one item in the history. If the history is disabled or at the most recent item nothing is triggered.
-
-#### historyGoto
-`index: number` The history index to go to.
-
-Goes to the history index. If it is out of outs, the index is the same as the current one or history is disabled then nothing is trigged.
-
 #### subscribe
 `selector: Selector<TState>` A function for picking the values out of the store you want to check when changed.
 
@@ -235,6 +216,53 @@ A shorthand subscribe function that will trigger the callback when the state cha
 
 #### unsubscribeAll
 Removes all subscriptions from the store.
+
+### HistoryStore
+The history store is a helper store for keeping track of all changes to the store and allows for going back and forth through that history.
+
+The history store itself is just an application of using a subscription and executing a modifier and doesn't rely on any internal API.
+
+#### Constructor
+`store: DataStore<TState>` The parent store to listen for the history of.
+
+`limiter: number = 100` The limiting number for how many items to keep. A value of zero will keep all items.
+
+Creates a new history store. The first thing the history store will do is populate the first history with the current state of the store.
+
+#### getIndex()
+`returns: number` The current index in to the history items list.
+
+Returns the current index in to the history items list.
+
+#### getItems()
+`returns: Readonly<HistoryItem<TState>[]>` The list of history items.
+
+Returns the current list of history items.
+
+#### setEnabled
+`enabled: boolean` Sets if the history is enabled or not.
+
+Sets if the history should be enabled or not. Internally it is subscribing and unsubscribing from the store.
+
+#### isEnabled
+`returns: boolean` Returns true if the history store is enabled.
+
+Returns true if the store is enabled.
+
+#### clear
+Clears the history items from the history store.
+
+#### back
+Goes back one item in the history. If history is disabled or is at the start of the history nothing is triggered.
+
+#### forward
+Goes forward one item in the history. If the history is disabled or at the most recent item nothing is triggered.
+
+#### goto
+`index: number` The history index to go to.
+
+Goes to the history index. If it is out of outs, the index is the same as the current one or history is disabled then nothing is trigged.
+
 
 ## License
 MIT
