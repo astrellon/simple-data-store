@@ -19,19 +19,15 @@ Also the whole thing is one Typescript file so it's pretty easy to manually add 
 
 ## Features
 - Small file size (about 1kb after compression)
-- Immutable
-- Simple API
+- Immutable.
+- Simple API.
 - More structure than something like Redux, keeps things simple once you have dozens of reducers/modifiers.
+- History support.
+- Selector support (along the lines of reselect for redux).
 - No dependencies
 
 ## Missing Features
 - No way to replay history on another computer or session, this may not ever be possible without further work.
-
-## Todo
-- Better history features:
-  - A way to control when the history is recorded.
-  - A way to record just parts of the state, such as UI specific patches.
-- More advanced features like thunk, but that's to be decided.
 
 ## Why?
 Do we ever need more JS/TS libraries?

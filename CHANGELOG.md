@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.1.1] 2019-07-08
+- Refactored how history works, now the store supports the ability to implement history rather that it being built in.
+- Added an implementation of history outside of the store.
+
 ## [2.0.0] 2019-07-03
 - Big refactor
 - Changed to using a purely function based reducer system without actions.
