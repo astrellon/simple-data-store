@@ -17,6 +17,9 @@ export type Subscription<TState> = (state: TState, newValue: any, triggeringModi
 // A function used to remove a subscription. This can be called multiple times.
 export type RemoveSubscription = () => void;
 
+// A callback function to be triggered when a new history item is added.
+export type HistorySubscription<TState> = (triggeringModifier: Modifier<TState>, historyState: TState) => void;
+
 // An item in the history. Keeps track of the modifier that created the state.
 // A null modifier means the start of the history.
 export interface HistoryItem<TState>
@@ -169,7 +172,14 @@ export class HistoryStore<TState>
     private index: number = 0;
     private unsub: RemoveSubscription = EmptyFunction;
     private initialState: TState;
+    private subscriptions: HistorySubscription<TState>[] = [];
 
+    /**
+     * Create a new history store that will keep track of all changes made to the given store.
+     *
+     * @param store The DataStore that this store will keep history of.
+     * @param limiter A limiter to the maximum number of items to keep. A value of zero will keep all items.
+     */
     constructor (store: DataStore<TState>, limiter: number = 100)
     {
         this.store = store;
@@ -181,10 +191,38 @@ export class HistoryStore<TState>
     }
 
     /**
+     * Subscribe a callback to be called when a new history item is added.
+     *
+     * @param subscription A callback to be called when a new history item is added.
+     * @returns A function to remove the subscription from the store.
+     */
+    public subscribe(subscription: HistorySubscription<TState>): RemoveSubscription
+    {
+        this.subscriptions.push(subscription);
+
+        let removed = false;
+        return () =>
+        {
+            if (removed)
+            {
+                return;
+            }
+
+            const index = this.subscriptions.indexOf(subscription);
+            if (index >= 0)
+            {
+                this.subscriptions.splice(index, 1);
+            }
+            removed = true;
+        };
+    }
+
+    /**
      * Returns the current history index
      */
     public getIndex()
     {
+        this.checkTrimHistory(0);
         return this.index;
     }
 
@@ -193,6 +231,7 @@ export class HistoryStore<TState>
      */
     public getItems(): Readonly<HistoryItem<TState>[]>
     {
+        this.checkTrimHistory(0);
         return this.items;
     }
 
@@ -272,27 +311,44 @@ export class HistoryStore<TState>
         this.store.execute((state) => historyItem, false);
     }
 
-
     /**
      * Pushes a new history item into the history list.
      * If the history index is not at the most current then those are removed.
      * Also checks if the history is getting too long.
      *
+     * @param triggeringModifier The modifier that triggered this change.
      * @param historyState The history item to add.
      */
     private addToHistory(triggeringModifier: Modifier<TState>, historyState: TState)
     {
         if (this.index < this.items.length - 1)
         {
-            this.items.splice(this.index, this.items.length);
+            this.items.splice(this.index + 1, this.items.length);
         }
         this.items.push({state: historyState, modifier: triggeringModifier});
         this.index = this.items.length - 1;
 
-        if (this.limiter > 0 && this.items.length > this.limiter + 10)
+        this.checkTrimHistory(10);
+
+        for (const listener of this.subscriptions)
         {
-            this.items.splice(0, 10);
-            this.index -= 10;
+            listener(triggeringModifier, historyState);
+        }
+    }
+
+    /**
+     * Checks if the number of history items has gone past the limiter.
+     * The padding lets the history only be trimmed if it's really too far.
+     *
+     * @param allowedPadding Amount of allowed extra items in the history.
+     */
+    private checkTrimHistory(allowedPadding: number)
+    {
+        if (this.limiter > 0 && this.items.length > this.limiter + allowedPadding)
+        {
+            const overflow = this.items.length - this.limiter;
+            this.items.splice(0, overflow);
+            this.index -= overflow;
         }
     }
 }
