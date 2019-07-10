@@ -191,9 +191,9 @@ export class HistoryStore<TState>
     }
 
     /**
-     * Subscribe a callback to be called when a new history item is added.
+     * Subscribe a callback to be triggered when a new history item is added.
      *
-     * @param subscription A callback to be called when a new history item is added.
+     * @param subscription A callback to be trigger when a new history item is added.
      * @returns A function to remove the subscription from the store.
      */
     public subscribe(subscription: HistorySubscription<TState>): RemoveSubscription
