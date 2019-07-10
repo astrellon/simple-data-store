@@ -93,11 +93,11 @@ export type Selector<TState> = (state: TState) => any;
 
 // A function used to compare if two parts of the state have actually changed.
 // By default a strict equals is used when comparing however sometimes something more complex is needed.
-export type Subscription<TState> = (state: TState, newValue: any, triggeringModifier: Modifier<TState>, isNewState: boolean) => void;
+export type SelectorComparer<TState> = (prevValue: TState, newValue: TState) => boolean;
 
 // A callback function to be triggered when a selector has returned a new value.
 // The callback is given the new state and result of the selector that triggered the callback.
-export type Subscription<TState> = (state: TState, newValue: any) => void;
+export type Subscription<TState> = (state: TState, newValue: any, triggeringModifier: Modifier<TState>, isNewState: boolean) => void;
 
 // A function used to remove a subscription. This can be called multiple times.
 export type RemoveSubscription = () => void;
