@@ -1,5 +1,8 @@
 # Changelog
 
+## [2.2.0] 2019-07-10
+- Filled out some more functionality for the history store, added subscription and fixed some bugs.
+
 ## [2.1.1] 2019-07-08
 - Refactored how history works, now the store supports the ability to implement history rather that it being built in.
 - Added an implementation of history outside of the store.

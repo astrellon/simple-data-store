@@ -102,6 +102,9 @@ export type Subscription<TState> = (state: TState, newValue: any, triggeringModi
 // A function used to remove a subscription. This can be called multiple times.
 export type RemoveSubscription = () => void;
 
+// A callback function to be triggered when a new history item is added.
+export type HistorySubscription<TState> = (triggeringModifier: Modifier<TState>, historyState: TState) => void;
+
 // An item in the history. Keeps track of the modifier that created the state.
 // A null modifier means the start of the history.
 export interface HistoryItem<TState>
@@ -150,17 +153,6 @@ The modifier is recommended to return a partial state that is merged.
 
 If the modifier returns the same state (as compared with strict equals) or null then
 the state is not updated nor is any subscription triggered.
-
-#### setEnableHistory
-`enable: boolean` Enable or disable the history.
-
-`historyLimited?: number` Sets the limiter on the number of history items.
-
-Sets if history is enabled or not.
-There is a small performance penalty for using it and some amount of memory depending on the limiter.
-A history limiter of 0 (zero) or less means no limit.
-
-*NOTE*: The limiter is not a hard limit, but items will not be removed if the history length is less than the limiter.
 
 #### subscribe
 `selector: Selector<TState>` A function for picking the values out of the store you want to check when changed.
@@ -225,15 +217,22 @@ The history store itself is just an application of using a subscription and exec
 
 Creates a new history store. The first thing the history store will do is populate the first history with the current state of the store.
 
-#### getIndex()
+#### getIndex
 `returns: number` The current index in to the history items list.
 
 Returns the current index in to the history items list.
 
-#### getItems()
+#### getItems
 `returns: Readonly<HistoryItem<TState>[]>` The list of history items.
 
 Returns the current list of history items.
+
+#### subscribe
+`subscription: HistorySubscription<TState>` A callback to be trigger when a new history item is added.
+
+`returns: RemoveSubscription` A function to remove the subscription from the store.
+
+Subscribe a callback to be triggered when a new history item is added.
 
 #### setEnabled
 `enabled: boolean` Sets if the history is enabled or not.
@@ -258,7 +257,6 @@ Goes forward one item in the history. If the history is disabled or at the most 
 `index: number` The history index to go to.
 
 Goes to the history index. If it is out of outs, the index is the same as the current one or history is disabled then nothing is trigged.
-
 
 ## License
 MIT
