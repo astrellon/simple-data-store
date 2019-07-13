@@ -83,7 +83,7 @@ export default class DataStore<TState>
     public execute(modifier: Modifier<TState>, isNewState: boolean = true)
     {
         const newState = modifier(this.currentState);
-        if (newState == null || newState === this.currentState)
+        if (newState === null || newState === undefined || newState === this.currentState)
         {
             return;
         }
