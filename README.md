@@ -271,6 +271,15 @@ Goes forward one item in the history. If the history is disabled or at the most 
 
 Goes to the history index. If it is out of outs, the index is the same as the current one or history is disabled then nothing is trigged.
 
+## Benchmarks
+There's a benchmarks folder with more details however the summery is that SimpleDataStore is roughly similar to redux in terms of performance.
+
+The pros are that it doesn't really matter how many state modifiers you have because there's no additional lookup time to find them compared to reducers.
+
+The cons for very states, where the state is a primitive value or the reducer returns the whole state without needing to be combined it's slower than Redux.
+
+The main reason being that SimpleDataStore assumes that the state is always an object and the modifiers will always return a partial state and combines using `Object.assign`. Combined to Redux that always assumes a full state object.
+
 ## License
 MIT
 
