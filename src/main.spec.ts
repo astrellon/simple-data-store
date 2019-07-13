@@ -96,6 +96,8 @@ test('history jumping around', () =>
     expect(numberOfHistoryChanges).toBe(6);
 
     unsubHistory();
+    unsubHistory();
+
 
     store.execute(inc);
     expect(store.state().counter).toBe(4);
@@ -105,6 +107,24 @@ test('history jumping around', () =>
     counterValues = historyStore.getItems().map(item => item.state.counter);
     expect(counterValues).toStrictEqual([2, 3, 4]);
     expect(historyStore.getIndex()).toBe(2);
+
+    expect(historyStore.isEnabled()).toBeTruthy();
+
+    historyStore.setEnabled(false);
+
+    expect(historyStore.isEnabled()).toBeFalsy();
+
+    const unsubHistory2 = historyStore.subscribe(() => numberOfHistoryChanges++);
+
+    store.execute(inc);
+    store.execute(inc);
+    expect(numberOfHistoryChanges).toBe(6);
+
+    historyStore.setEnabled(true);
+
+    store.execute(inc);
+    store.execute(inc);
+    expect(numberOfHistoryChanges).toBe(8);
 });
 
 test('custom selector', () =>
@@ -115,9 +135,9 @@ test('custom selector', () =>
     let numberOfCustomChanges = 0;
     let numberOfAnyChanges = 0;
 
-    store.subscribe((state) => state.counter, (state) => numberOfChanges++);
-    store.subscribe((state) => state, (state) => numberOfCustomChanges++, (prev, next) => next.counter === prev.counter);
-    store.subscribeAny((state) => numberOfAnyChanges++);
+    const unsub = store.subscribe((state) => state.counter, (state) => numberOfChanges++);
+    const unsubCustom = store.subscribe((state) => state, (state) => numberOfCustomChanges++, (prev, next) => next.counter === prev.counter);
+    const unsubAny = store.subscribeAny((state) => numberOfAnyChanges++);
 
     store.execute(changeCounter(1));
     store.execute(changeCounter(1));
@@ -134,6 +154,31 @@ test('custom selector', () =>
     expect(numberOfChanges).toBe(2);
 
     store.execute((state) => null);
+
+    expect(numberOfAnyChanges).toBe(4);
+    expect(numberOfCustomChanges).toBe(2);
+    expect(numberOfChanges).toBe(2);
+
+    store.unsubscribeAll();
+
+    store.execute(changeCounter(1));
+    store.execute(changeCounter(1));
+
+    expect(numberOfAnyChanges).toBe(4);
+    expect(numberOfCustomChanges).toBe(2);
+    expect(numberOfChanges).toBe(2);
+
+    unsub();
+    unsub();
+
+    unsubCustom();
+    unsubCustom();
+
+    unsubAny();
+    unsubAny();
+
+    store.execute(changeCounter(1));
+    store.execute(changeCounter(1));
 
     expect(numberOfAnyChanges).toBe(4);
     expect(numberOfCustomChanges).toBe(2);
