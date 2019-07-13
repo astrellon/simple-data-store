@@ -1,4 +1,6 @@
 # Simple Data Store
+![NPM](https://badgen.net/npm/v/simple-data-store)![Badge for Gzip size](https://badgen.net/bundlephobia/minzip/simple-data-store)
+
 A Typescript based simple data store for state management.
 
 My alternative to redux and other state management.
@@ -21,7 +23,6 @@ Also the whole thing is one Typescript file so it's pretty easy to manually add 
 - Small file size (about 1kb after compression)
 - Immutable.
 - Simple API.
-- More structure than something like Redux, keeps things simple once you have dozens of reducers/modifiers.
 - History support.
 - Selector support (along the lines of reselect for redux).
 - No dependencies
@@ -35,9 +36,9 @@ Do we ever need more JS/TS libraries?
 I like what redux and other functional state management libraries have done for UI but I found them too unstructured and too generalised. So I put together my own version that is still general but puts just enough structure to fulfil my needs.
 
 ## Example
-Reducers are functions that perform an action on the state. This means that the state does not need to know about reducers at all.
+Modifiers are functions that perform an action on the state. This means that the state does not need to know about modifiers at all.
 
-In the example below it is shown that creating a function that returns the reducer with the values in the closure is useful.
+In the example below it is shown that creating a function that returns the modifier with the values in the closure is useful.
 
 ```typescript
 import DataStore, { HistoryStore } from "../src";
