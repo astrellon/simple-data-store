@@ -2,29 +2,56 @@ import { createStore, Action } from "redux";
 import DataStore from "../src";
 import { Suite } from "benchmark";
 
+console.log('--- Big State Benchmarks ---');
+
 interface State
 {
-    value0: number;
-    value1: number;
-    value2: number;
-    value3: number;
-    value4: number;
-    value5: number;
-    value6: number;
-    value7: number;
-    value8: number;
-    value9: number;
-    value10: number;
-    value11: number;
-    value12: number;
-    value13: number;
-    value14: number;
-    value15: number;
-    value16: number;
-    value17: number;
-    value18: number;
-    value19: number;
+    readonly value0: number;
+    readonly value1: number;
+    readonly value2: number;
+    readonly value3: number;
+    readonly value4: number;
+    readonly value5: number;
+    readonly value6: number;
+    readonly value7: number;
+    readonly value8: number;
+    readonly value9: number;
+    readonly value10: number;
+    readonly value11: number;
+    readonly value12: number;
+    readonly value13: number;
+    readonly value14: number;
+    readonly value15: number;
+    readonly value16: number;
+    readonly value17: number;
+    readonly value18: number;
+    readonly value19: number;
 }
+
+const defaultState: State =
+{
+    value0: 0,
+    value1: 0,
+    value2: 0,
+    value3: 0,
+    value4: 0,
+    value5: 0,
+    value6: 0,
+    value7: 0,
+    value8: 0,
+    value9: 0,
+    value10: 0,
+    value11: 0,
+    value12: 0,
+    value13: 0,
+    value14: 0,
+    value15: 0,
+    value16: 0,
+    value17: 0,
+    value18: 0,
+    value19: 0
+}
+
 
 function change0(value: number) { return (state: State) => ({value0: state.value0 + value}); }
 function change1(value: number) { return (state: State) => ({value1: state.value1 + value}); }
@@ -52,7 +79,7 @@ function reduxChange(index: number, value: number)
     return {type: 'CHANGE' + index, value};
 }
 
-function reduxReducer(state: State, action :Action<string>)
+function reduxReducer(state: State = defaultState, action :Action<string>)
 {
     switch (action.type)
     {
@@ -82,34 +109,10 @@ function reduxReducer(state: State, action :Action<string>)
     }
 }
 
-const defaultState: State =
-{
-    value0: 0,
-    value1: 0,
-    value2: 0,
-    value3: 0,
-    value4: 0,
-    value5: 0,
-    value6: 0,
-    value7: 0,
-    value8: 0,
-    value9: 0,
-    value10: 0,
-    value11: 0,
-    value12: 0,
-    value13: 0,
-    value14: 0,
-    value15: 0,
-    value16: 0,
-    value17: 0,
-    value18: 0,
-    value19: 0
-}
-
 const store = new DataStore<State>(defaultState);
 const reduxStore = createStore(reduxReducer, defaultState);
 
-const suite = new Suite();
+const suite = new Suite('Big State');
 // add tests
 suite.add('SimpleDataStore', function ()
     {
@@ -202,9 +205,9 @@ suite.add('SimpleDataStore', function ()
     {
         console.log(String(event.target));
     })
-    .on('complete', function ()
+    .on('complete', function (this: Suite)
     {
-        console.log('Fastest is ' + this.filter('fastest').map('name'));
+        console.log('Fastest is ', (this.filter('fastest') as any).map('name'));
     })
     // run async
     .run({ 'async': true });

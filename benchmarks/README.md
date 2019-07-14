@@ -2,6 +2,12 @@
 
 Some benchmarks for comparing simple and somewhat complex stores. Also some comparisons with Redux.
 
+To run all benchmarks:
+
+```sh
+$ npm run benchmarks
+```
+
 ## TL;DR
 
 For very simple stores, such as a store that is a simple primitive value, or a state that doesn't require being combined with the previous state (ie: {...state, etc}) Redux is faster, sometimes by a factor of 10x.

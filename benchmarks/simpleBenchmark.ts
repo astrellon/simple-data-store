@@ -2,15 +2,19 @@ import { Suite } from "benchmark";
 import DataStore, { Modifier } from "../src";
 import { createStore, Action } from "redux";
 
-const suite = new Suite();
+console.log('--- Simple State Benchmarks ---');
+
+const suite = new Suite('Simple State');
 
 interface State
 {
-    counter: number;
+    readonly counter: number;
 }
 
-const store1 = new DataStore<State>({counter: 0});
-const store2 = new DataStore<State>({counter: 0});
+const defaultState: State = {counter: 0};
+
+const store1 = new DataStore<State>(defaultState);
+const store2 = new DataStore<State>(defaultState);
 
 function inc(): Modifier<State>
 {
@@ -25,7 +29,7 @@ function change(value: number): Modifier<State>
     return (state: State) => ({counter: state.counter + value});
 }
 
-function reduxCounter1(reduxState: State, action: Action<string>)
+function reduxCounter1(reduxState: State = defaultState, action: Action<string>)
 {
     switch (action.type) {
         case 'INC':
@@ -36,7 +40,7 @@ function reduxCounter1(reduxState: State, action: Action<string>)
             return reduxState;
     }
 }
-function reduxCounter2(reduxState: State, action: Action<string>)
+function reduxCounter2(reduxState: State = defaultState, action: Action<string>)
 {
     switch (action.type) {
         case 'CHANGE':
@@ -58,8 +62,8 @@ function reduxChange(value: number)
 {
     return {type: 'CHANGE', value};
 }
-const reduxStore1 = createStore(reduxCounter1, {counter: 0});
-const reduxStore2 = createStore(reduxCounter2, {counter: 0});
+const reduxStore1 = createStore(reduxCounter1, defaultState);
+const reduxStore2 = createStore(reduxCounter2, defaultState);
 
 // add tests
 suite.add('NoArgModifiers', function ()
@@ -87,9 +91,9 @@ suite.add('NoArgModifiers', function ()
     {
         console.log(String(event.target));
     })
-    .on('complete', function ()
+    .on('complete', function (this: Suite)
     {
-        console.log('Fastest is ' + this.filter('fastest').map('name'));
+        console.log('Fastest is ', (this.filter('fastest') as any).map('name'));
     })
     // run async
     .run({ 'async': true });

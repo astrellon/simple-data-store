@@ -2,6 +2,8 @@ import DataStore from "../src";
 import { createStore, Action } from "redux";
 import { Suite } from "benchmark";
 
+console.log('--- Todo App Benchmarks ---');
+
 // Common
 interface TodoItem
 {
@@ -63,7 +65,7 @@ function changeCounter(value: number)
 }
 
 // Redux
-function reduxReducer(state: State, action: Action<string>)
+function reduxReducer(state: State = defaultStore, action: Action<string>)
 {
     switch (action.type) {
         case 'ADD':
@@ -118,7 +120,7 @@ function reduxChangeCounter(value: number)
 const store = new DataStore<State>(defaultStore);
 const reduxStore = createStore(reduxReducer, defaultStore);
 
-const suite = new Suite();
+const suite = new Suite('Todo App');
 
 // add tests
 suite.add('SimpleDataStore', function ()
@@ -148,9 +150,9 @@ suite.add('SimpleDataStore', function ()
     {
         console.log(String(event.target));
     })
-    .on('complete', function ()
+    .on('complete', function (this: Suite)
     {
-        console.log('Fastest is ' + this.filter('fastest').map('name'));
+        console.log('Fastest is ', (this.filter('fastest') as any).map('name'));
     })
     // run async
     .run({ 'async': true });

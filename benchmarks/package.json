@@ -1,0 +1,18 @@
+{
+  "name": "simple-data-store-benchmarks",
+  "version": "1.0.0",
+  "description": "Benchmarks for the SimpleDataStore package",
+  "main": "index.js",
+  "scripts": {
+    "benchmark": "ts-node simpleBenchmark.ts && ts-node todoBenchmark.ts && ts-node bigStateBenchmark.ts"
+  },
+  "author": "Alan Lawrey",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/benchmark": "^1.0.31",
+    "@types/redux": "^3.6.0",
+    "benchmark": "^2.1.4",
+    "redux": "^4.0.4",
+    "ts-node": "^8.3.0"
+  }
+}
