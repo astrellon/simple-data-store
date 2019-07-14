@@ -100,7 +100,7 @@ export default class DataStore<TState>
      * @param comparer An optional comparer for old and new values.
      * @returns A function to remove the subscription from the store.
      */
-    public subscribe (selector: Selector<TState>, subscription: Subscription<TState>, comparer: SelectorComparer<TState> = null): RemoveSubscription
+    public subscribe (selector: Selector<TState>, subscription: Subscription<TState>, comparer?: SelectorComparer<TState>): RemoveSubscription
     {
         const startValue = selector(this.currentState);
         const obj = { selector: new SelectorContext(selector, startValue, comparer), subscription };
@@ -362,10 +362,10 @@ export class HistoryStore<TState>
 class SelectorContext<TState>
 {
     public readonly selector: Selector<TState>;
-    public readonly comparer: SelectorComparer<TState>;
-    public prevValue: any;
+    public readonly comparer?: SelectorComparer<TState>;
+    private prevValue: any;
 
-    constructor (selector: Selector<TState>, startValue: any = undefined, comparer: SelectorComparer<TState> = null)
+    constructor (selector: Selector<TState>, startValue: any = undefined, comparer?: SelectorComparer<TState>)
     {
         this.selector = selector;
         this.prevValue = startValue;
@@ -391,7 +391,7 @@ class SelectorContext<TState>
     public checkIfChanged (newValue: any): boolean
     {
         let result = false;
-        if (this.comparer != null)
+        if (this.comparer !== undefined)
         {
             result = !this.comparer(this.prevValue, newValue);
         }
