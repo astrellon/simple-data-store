@@ -1,5 +1,8 @@
 # Changelog
 
+## [2.2.2] 2019-07-14
+- Made the tsconfig use strict mode.
+
 ## [2.2.0] 2019-07-10
 - Filled out some more functionality for the history store, added subscription and fixed some bugs.
 
