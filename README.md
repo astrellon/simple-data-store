@@ -20,15 +20,12 @@ And in the `dist` folder will be the Javascript and Typescript typings file.
 Also the whole thing is one Typescript file so it's pretty easy to manually add it to your own source code.
 
 ## Features
-- Small file size (about 1kb after compression)
+- Small file size (about 0.5kb after compression)
 - Immutable.
 - Simple API.
-- History support.
+- Has support for history, with an example implementation found [here](https://github.com/astrellon/simple-data-store/tree/master/history)
 - Selector support (along the lines of reselect for redux).
 - No dependencies
-
-## Missing Features
-- No way to replay history on another computer or session, this may not ever be possible without further work.
 
 ## Why?
 Do we ever need more JS/TS libraries?
@@ -41,7 +38,7 @@ Modifiers are functions that perform an action on the state. This means that the
 In the example below it is shown that creating a function that returns the modifier with the values in the closure is useful.
 
 ```typescript
-import DataStore, { HistoryStore } from "../src";
+import DataStore from "../src";
 
 interface SimpleState
 {
@@ -58,31 +55,24 @@ const store = new DataStore<SimpleState>
     counter: 0
 });
 
-// History store is kind of like an extension.
-// Really it's just an application of the subscribeAny and execute methods.
-const historyStore = new HistoryStore<SimpleState>(store, 100);
-
 store.subscribeAny((state) => console.log(state));
 
 store.execute(change(1));
 store.execute(change(2));
 store.execute(change(-1));
 
-historyStore.back();
-
 /* Example output:
 { counter: 1 }
 { counter: 3 }
 { counter: 2 }
-{ counter: 3 }
 */
 ```
 
 There is a longer example at `example/sample.ts`.
 
-## API
+# API
 
-### Types
+## Types
 ```typescript
 // A function to create a patch for the state.
 // Meaning this should return a partial state to be merged with the current state.
@@ -103,24 +93,14 @@ export type Subscription<TState> = (state: TState, newValue: any, triggeringModi
 // A function used to remove a subscription. This can be called multiple times.
 export type RemoveSubscription = () => void;
 
-// A callback function to be triggered when a new history item is added.
-export type HistorySubscription<TState> = (triggeringModifier: Modifier<TState>, historyState: TState) => void;
-
-// An item in the history. Keeps track of the modifier that created the state.
-// A null modifier means the start of the history.
-export interface HistoryItem<TState>
-{
-    readonly modifier: Modifier<TState> | null;
-    readonly state: TState;
-}
 ```
 
-### DataStore
+## DataStore
 The main data store class. Keeps track of the current state, any subscriptions and optionally a history of the state.
 
 By default history is disabled.
 
-#### Constructor
+### Constructor
 `initialState: TState` The initial state of the store.
 
 The constructor requires an initial state for the store that fits the store's state interface.
@@ -140,13 +120,13 @@ const store = new DataStore<State>({
 });
 ```
 
-#### state
+### state
 `returns: Readonly<TState>` The current state.
 
 Returns the state marked specifically as readonly.
 The readonly part is not usually required but just to make it very clear.
 
-#### execute
+### execute
 `modifier: Modifier<TState>` The modifier function to patch the state with.
 
 Executes a modifier on the state.
@@ -155,7 +135,7 @@ The modifier is recommended to return a partial state that is merged.
 If the modifier returns the same state (as compared with strict equals) or null then
 the state is not updated nor is any subscription triggered.
 
-#### subscribe
+### subscribe
 `selector: Selector<TState>` A function for picking the values out of the store you want to check when changed.
 
 `subscription: Subscription<TState>` A callback that will be triggered when the values returned by the selector has changed.
@@ -208,70 +188,16 @@ Number of age changes 2
 */
 ```
 
-#### subscribeAny
+### subscribeAny
 `subscription: Subscription<TState>` A callback that will be triggered when the state has changed.
 
 `returns: RemoveSubscription` A function to remove the subscription from the store.
 
 A shorthand subscribe function that will trigger the callback when the state changes at all.
 
-#### unsubscribeAll
+### unsubscribeAll
 Removes all subscriptions from the store.
-
-### HistoryStore
-The history store is a helper store for keeping track of all changes to the store and allows for going back and forth through that history.
-
-The history store itself is just an application of using a subscription and executing a modifier and doesn't rely on any internal API.
-
-#### Constructor
-`store: DataStore<TState>` The parent store to listen for the history of.
-
-`limiter: number = 100` The limiting number for how many items to keep. A value of zero will keep all items.
-
-Creates a new history store. The first thing the history store will do is populate the first history with the current state of the store.
-
-#### getIndex
-`returns: number` The current index in to the history items list.
-
-Returns the current index in to the history items list.
-
-#### getItems
-`returns: Readonly<HistoryItem<TState>[]>` The list of history items.
-
-Returns the current list of history items.
-
-#### subscribe
-`subscription: HistorySubscription<TState>` A callback to be trigger when a new history item is added.
-
-`returns: RemoveSubscription` A function to remove the subscription from the store.
-
-Subscribe a callback to be triggered when a new history item is added.
-
-#### setEnabled
-`enabled: boolean` Sets if the history is enabled or not.
-
-Sets if the history should be enabled or not. Internally it is subscribing and unsubscribing from the store.
-
-#### isEnabled
-`returns: boolean` Returns true if the history store is enabled.
-
-Returns true if the store is enabled.
-
-#### clear
-Clears the history items from the history store.
-
-#### back
-Goes back one item in the history. If history is disabled or is at the start of the history nothing is triggered.
-
-#### forward
-Goes forward one item in the history. If the history is disabled or at the most recent item nothing is triggered.
-
-#### goto
-`index: number` The history index to go to.
-
-Goes to the history index. If it is out of outs, the index is the same as the current one or history is disabled then nothing is trigged.
-
-## Benchmarks
+# Benchmarks
 There's a benchmarks folder with more details however the summery is that SimpleDataStore is roughly similar to redux in terms of performance.
 
 The pros are that it doesn't really matter how many state modifiers you have because there's no additional lookup time to find them compared to reducers.

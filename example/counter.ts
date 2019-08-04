@@ -1,5 +1,4 @@
 import { SimpleState } from './sample';
-import { Modifier } from '../src';
 
 export function inc()
 {

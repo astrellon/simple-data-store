@@ -1,5 +1,8 @@
 # Changelog
 
+## [3.0.0] 2019-08-04
+- Moved history store into its own package.
+
 ## [2.2.2] 2019-07-14
 - Made the tsconfig use strict mode.
 

@@ -1,4 +1,5 @@
-import DataStore, { HistoryStore } from "../src";
+import DataStore from "simple-data-store";
+import HistoryStore from "../src";
 
 function inc()
 {
