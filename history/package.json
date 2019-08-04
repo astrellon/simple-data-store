@@ -1,6 +1,6 @@
 {
   "name": "simple-data-store-history",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "An implementation of history support for Simple Data Store.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -21,14 +21,6 @@
     "history"
   ],
   "npmName": "simple-data-store-history",
-  "npmFileMap": [
-    {
-      "basePath": "/dist/",
-      "files": [
-        "*.js"
-      ]
-    }
-  ],
   "author": "Alan Lawrey",
   "license": "MIT",
   "devDependencies": {
@@ -40,6 +32,6 @@
     "uglify-es": "^3.3.9"
   },
   "peerDependencies": {
-    "simple-data-store": "^3.0.0"
+    "simple-data-store": "^3.0.1"
   }
 }
