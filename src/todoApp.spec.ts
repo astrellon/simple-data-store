@@ -1,4 +1,5 @@
 import DataStore from ".";
+import createStore from ".";
 
 interface TodoItem
 {
@@ -53,16 +54,17 @@ const defaultStore: State =
 
 test('simple todo test', () =>
 {
-    const store = new DataStore<State>(defaultStore);
+    let currentState: State = defaultStore;
+    const store = createStore<State>(defaultStore, (state) => currentState = state);
 
-    store.execute(addTodo({text: 'Item 1', id: 0}));
-    store.execute(addTodo({text: 'Item 2', id: 1}));
-    store.execute(addTodo({text: 'Item 3', id: 2}));
-    store.execute(removeTodo(0));
+    store(addTodo({text: 'Item 1', id: 0}));
+    store(addTodo({text: 'Item 2', id: 1}));
+    store(addTodo({text: 'Item 3', id: 2}));
+    store(removeTodo(0));
 
-    expect(store.state().todos).toStrictEqual([{text: 'Item 2', id: 1}, {text: 'Item 3', id: 2}]);
+    expect(currentState.todos).toStrictEqual([{text: 'Item 2', id: 1}, {text: 'Item 3', id: 2}]);
 
-    store.execute(updateTodo(1, 'Item 2 Done'));
+    store(updateTodo(1, 'Item 2 Done'));
 
-    expect(store.state().todos).toStrictEqual([{text: 'Item 2 Done', id: 1}, {text: 'Item 3', id: 2}]);
+    expect(currentState.todos).toStrictEqual([{text: 'Item 2 Done', id: 1}, {text: 'Item 3', id: 2}]);
 });

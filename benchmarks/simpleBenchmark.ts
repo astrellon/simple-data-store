@@ -1,6 +1,6 @@
 import { Suite } from "benchmark";
-import DataStore, { Modifier } from "../src";
-import { createStore, Action } from "redux";
+import { createStore as createReduxStore, Action } from "redux";
+import createStore, { Modifier } from "../src";
 
 console.log('--- Simple State Benchmarks ---');
 
@@ -13,8 +13,8 @@ interface State
 
 const defaultState: State = {counter: 0};
 
-const store1 = new DataStore<State>(defaultState);
-const store2 = new DataStore<State>(defaultState);
+const store1 = createStore<State>(defaultState, () => {});
+const store2 = createStore<State>(defaultState, () => {});
 
 function inc(): Modifier<State>
 {
@@ -62,19 +62,19 @@ function reduxChange(value: number)
 {
     return {type: 'CHANGE', value};
 }
-const reduxStore1 = createStore(reduxCounter1, defaultState);
-const reduxStore2 = createStore(reduxCounter2, defaultState);
+const reduxStore1 = createReduxStore(reduxCounter1, defaultState);
+const reduxStore2 = createReduxStore(reduxCounter2, defaultState);
 
 // add tests
 suite.add('NoArgModifiers', function ()
     {
-        store1.execute(inc());
-        store1.execute(dec());
+        store1(inc());
+        store1(dec());
     })
     .add('ArgModifiers', function ()
     {
-        store2.execute(change(1));
-        store2.execute(change(-1));
+        store2(change(1));
+        store2(change(-1));
     })
     .add('NoArgRedux', function()
     {

@@ -6,11 +6,11 @@ interface State
     name: string;
 }
 
-const store = new DataStore<State>
+const store = DataStore<State>
 ({
     age: 30,
     name: "Fluff"
-});
+}, () => {});
 
 let numberOfAgeChanges = 0;
 

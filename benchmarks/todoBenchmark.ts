@@ -1,6 +1,6 @@
-import DataStore from "../src";
-import { createStore, Action } from "redux";
+import { createStore as createReduxStore, Action } from "redux";
 import { Suite } from "benchmark";
+import createStore from "../src";
 
 console.log('--- Todo App Benchmarks ---');
 
@@ -117,22 +117,22 @@ function reduxChangeCounter(value: number)
     return {type: 'COUNTER', value};
 }
 
-const store = new DataStore<State>(defaultStore);
-const reduxStore = createStore(reduxReducer, defaultStore);
+const store = createStore<State>(defaultStore, () => {});
+const reduxStore = createReduxStore(reduxReducer, defaultStore);
 
 const suite = new Suite('Todo App');
 
 // add tests
 suite.add('SimpleDataStore', function ()
     {
-        store.execute(addTodo({id: 0, text: 'Item 1'}));
-        store.execute(addTodo({id: 1, text: 'Item 2'}));
-        store.execute(updateTodo(0, 'Item 1 Done'));
-        store.execute(updateTodo(1, 'Item 2 Done'));
-        store.execute(changeCounter(1));
-        store.execute(changeCounter(-1));
-        store.execute(removeTodo(0));
-        store.execute(removeTodo(1));
+        store(addTodo({id: 0, text: 'Item 1'}));
+        store(addTodo({id: 1, text: 'Item 2'}));
+        store(updateTodo(0, 'Item 1 Done'));
+        store(updateTodo(1, 'Item 2 Done'));
+        store(changeCounter(1));
+        store(changeCounter(-1));
+        store(removeTodo(0));
+        store(removeTodo(1));
     })
     .add('Redux', function ()
     {

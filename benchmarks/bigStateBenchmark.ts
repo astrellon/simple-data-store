@@ -1,6 +1,6 @@
-import { createStore, Action } from "redux";
-import DataStore from "../src";
+import { createStore as createReduxStore, Action } from "redux";
 import { Suite } from "benchmark";
+import createStore from "../src";
 
 console.log('--- Big State Benchmarks ---');
 
@@ -109,53 +109,53 @@ function reduxReducer(state: State = defaultState, action :Action<string>)
     }
 }
 
-const store = new DataStore<State>(defaultState);
-const reduxStore = createStore(reduxReducer, defaultState);
+const store = createStore<State>(defaultState, () => {});
+const reduxStore = createReduxStore(reduxReducer, defaultState);
 
 const suite = new Suite('Big State');
 // add tests
 suite.add('SimpleDataStore', function ()
     {
-        store.execute(change0(1));
-        store.execute(change0(-1));
-        store.execute(change1(1));
-        store.execute(change1(-1));
-        store.execute(change2(1));
-        store.execute(change2(-1));
-        store.execute(change3(1));
-        store.execute(change3(-1));
-        store.execute(change4(1));
-        store.execute(change4(-1));
-        store.execute(change5(1));
-        store.execute(change5(-1));
-        store.execute(change6(1));
-        store.execute(change6(-1));
-        store.execute(change7(1));
-        store.execute(change7(-1));
-        store.execute(change8(1));
-        store.execute(change8(-1));
-        store.execute(change9(1));
-        store.execute(change9(-1));
-        store.execute(change10(1));
-        store.execute(change10(-1));
-        store.execute(change11(1));
-        store.execute(change11(-1));
-        store.execute(change12(1));
-        store.execute(change12(-1));
-        store.execute(change13(1));
-        store.execute(change13(-1));
-        store.execute(change14(1));
-        store.execute(change14(-1));
-        store.execute(change15(1));
-        store.execute(change15(-1));
-        store.execute(change16(1));
-        store.execute(change16(-1));
-        store.execute(change17(1));
-        store.execute(change17(-1));
-        store.execute(change18(1));
-        store.execute(change18(-1));
-        store.execute(change19(1));
-        store.execute(change19(-1));
+        store(change0(1));
+        store(change0(-1));
+        store(change1(1));
+        store(change1(-1));
+        store(change2(1));
+        store(change2(-1));
+        store(change3(1));
+        store(change3(-1));
+        store(change4(1));
+        store(change4(-1));
+        store(change5(1));
+        store(change5(-1));
+        store(change6(1));
+        store(change6(-1));
+        store(change7(1));
+        store(change7(-1));
+        store(change8(1));
+        store(change8(-1));
+        store(change9(1));
+        store(change9(-1));
+        store(change10(1));
+        store(change10(-1));
+        store(change11(1));
+        store(change11(-1));
+        store(change12(1));
+        store(change12(-1));
+        store(change13(1));
+        store(change13(-1));
+        store(change14(1));
+        store(change14(-1));
+        store(change15(1));
+        store(change15(-1));
+        store(change16(1));
+        store(change16(-1));
+        store(change17(1));
+        store(change17(-1));
+        store(change18(1));
+        store(change18(-1));
+        store(change19(1));
+        store(change19(-1));
     })
     .add('Redux', function ()
     {
