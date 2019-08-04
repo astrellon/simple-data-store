@@ -5,7 +5,7 @@ Some benchmarks for comparing simple and somewhat complex stores. Also some comp
 To run all benchmarks:
 
 ```sh
-$ npm run benchmarks
+$ npm run benchmark
 ```
 
 ## TL;DR
