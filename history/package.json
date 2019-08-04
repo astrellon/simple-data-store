@@ -40,6 +40,6 @@
     "uglify-es": "^3.3.9"
   },
   "peerDependencies": {
-    "simple-data-store": "^2.2.2"
+    "simple-data-store": "^3.0.0"
   }
 }
