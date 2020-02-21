@@ -142,6 +142,8 @@ the state is not updated nor is any subscription triggered.
 
 `comparer: SelectorComparer<TState>` An optional comparer for the old and new values in the selector. Defaults to strict equals.
 
+`selectorName: string` An optional name for the selector, can be used to help identify the selector when debugging.
+
 `returns: RemoveSubscription` A function to remove the subscription from the store.
 
 Subscribe a callback to be triggered when a part of the state has changed.
@@ -191,12 +193,15 @@ Number of age changes 2
 ### subscribeAny
 `subscription: Subscription<TState>` A callback that will be triggered when the state has changed.
 
+`selectorName: string` An optional name for the selector, can be used to help identify the selector when debugging.
+
 `returns: RemoveSubscription` A function to remove the subscription from the store.
 
 A shorthand subscribe function that will trigger the callback when the state changes at all.
 
 ### unsubscribeAll
 Removes all subscriptions from the store.
+
 # Benchmarks
 There's a benchmarks folder with more details however the summery is that SimpleDataStore is roughly similar to redux in terms of performance.
 
@@ -210,4 +215,4 @@ The main reason being that SimpleDataStore assumes that the state is always an o
 MIT
 
 ## Author
-Alan Lawrey 2019
+Alan Lawrey 2020

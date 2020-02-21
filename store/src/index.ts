@@ -85,12 +85,13 @@ export default class DataStore<TState>
      * @param selector A function for picking the values out of the store you want to check has changed.
      * @param subscription A callback that will be triggered when the values returned in the selector have changed.
      * @param comparer An optional comparer for old and new values.
+     * @param selectorName An optional name to link with the selector to help with debugging.
      * @returns A function to remove the subscription from the store.
      */
-    public subscribe (selector: Selector<TState>, subscription: Subscription<TState>, comparer?: SelectorComparer<TState>): RemoveSubscription
+    public subscribe (selector: Selector<TState>, subscription: Subscription<TState>, comparer?: SelectorComparer<TState>, selectorName?: string): RemoveSubscription
     {
         const startValue = selector(this.currentState);
-        const obj = { selector: new SelectorContext(selector, startValue, comparer), subscription };
+        const obj = { selector: new SelectorContext(selector, startValue, comparer, selectorName), subscription };
         this.subscriptions.push(obj);
 
         let removed = false;
@@ -114,11 +115,12 @@ export default class DataStore<TState>
      * Adds a callback for anytime the store has changed.
      *
      * @param callback A callback for when the store has changed.
+     * @param selectorName An optional name to link with the selector to help with debugging.
      * @returns A function to remove the subscription from the store.
      */
-    public subscribeAny (callback: Subscription<TState>): RemoveSubscription
+    public subscribeAny (callback: Subscription<TState>, selectorName?: string): RemoveSubscription
     {
-        return this.subscribe((state) => state, callback);
+        return this.subscribe((state) => state, callback, undefined, selectorName);
     }
 
     /**
@@ -157,13 +159,15 @@ class SelectorContext<TState>
 {
     public readonly selector: Selector<TState>;
     public readonly comparer?: SelectorComparer<TState>;
+    public readonly name?: string;
     private prevValue: any;
 
-    constructor (selector: Selector<TState>, startValue: any = undefined, comparer?: SelectorComparer<TState>)
+    constructor (selector: Selector<TState>, startValue: any = undefined, comparer?: SelectorComparer<TState>, name?: string)
     {
         this.selector = selector;
         this.prevValue = startValue;
         this.comparer = comparer;
+        this.name = name;
     }
 
     /**
