@@ -8,7 +8,7 @@ export type Selector<TState> = (state: TState) => any;
 
 // A function used to compare if two parts of the state have actually changed.
 // By default a strict equals is used when comparing however sometimes something more complex is needed.
-export type SelectorComparer<TState> = (prevValue: TState, newValue: TState) => boolean;
+export type SelectorComparer<TValue> = (prevValue: TValue, newValue: TValue) => boolean;
 
 // A callback function to be triggered when a selector has returned a new value.
 // The callback is given the new state and result of the selector that triggered the callback.
@@ -21,9 +21,9 @@ export type RemoveSubscription = () => void;
 export const EmptyModifier: Modifier<any> = () => null;
 
 // Pairing of the selector function and subscription callback.
-interface SubscriptionSelectorPair<TState>
+interface SubscriptionSelectorPair<TState, TValue>
 {
-    readonly selector: SelectorContext<TState>;
+    readonly selector: SelectorContext<TState, TValue>;
     readonly subscription: Subscription<TState>;
 }
 
@@ -35,7 +35,7 @@ interface SubscriptionSelectorPair<TState>
 export default class DataStore<TState>
 {
     private currentState: TState;
-    private subscriptions: Array<SubscriptionSelectorPair<TState>> = [];
+    private subscriptions: Array<SubscriptionSelectorPair<TState, any>> = [];
 
     /**
      * Creates a new DataStore.
@@ -84,11 +84,11 @@ export default class DataStore<TState>
      *
      * @param selector A function for picking the values out of the store you want to check has changed.
      * @param subscription A callback that will be triggered when the values returned in the selector have changed.
-     * @param comparer An optional comparer for old and new values.
+     * @param comparer An optional comparer for old and new values, these values will the old and new results from the selector, *NOT* the state as a whole.
      * @param selectorName An optional name to link with the selector to help with debugging.
      * @returns A function to remove the subscription from the store.
      */
-    public subscribe (selector: Selector<TState>, subscription: Subscription<TState>, comparer?: SelectorComparer<TState>, selectorName?: string): RemoveSubscription
+    public subscribe<TValue>(selector: Selector<TState>, subscription: Subscription<TState>, comparer?: SelectorComparer<TValue>, selectorName?: string): RemoveSubscription
     {
         const startValue = selector(this.currentState);
         const obj = { selector: new SelectorContext(selector, startValue, comparer, selectorName), subscription };
@@ -155,14 +155,14 @@ export default class DataStore<TState>
  *
  * NOTE: Not indented to be a public class.
  */
-class SelectorContext<TState>
+class SelectorContext<TState, TValue>
 {
     public readonly selector: Selector<TState>;
-    public readonly comparer?: SelectorComparer<TState>;
+    public readonly comparer?: SelectorComparer<TValue>;
     public readonly name?: string;
     private prevValue: any;
 
-    constructor (selector: Selector<TState>, startValue: any = undefined, comparer?: SelectorComparer<TState>, name?: string)
+    constructor (selector: Selector<TState>, startValue: any = undefined, comparer?: SelectorComparer<TValue>, name?: string)
     {
         this.selector = selector;
         this.prevValue = startValue;

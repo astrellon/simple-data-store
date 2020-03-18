@@ -4,9 +4,9 @@
   "description": "Examples for the SimpleDataStore package",
   "main": "",
   "scripts": {
-      "sample": "ts-node sample.ts",
-      "readmeExample": "ts-node readmeExample.ts",
-      "readmeSubscription": "ts-node readmeSubscription.ts"
+    "sample": "ts-node sample.ts",
+    "readmeExample": "ts-node readmeExample.ts",
+    "readmeSubscription": "ts-node readmeSubscription.ts"
   },
   "author": "Alan Lawrey",
   "license": "MIT",

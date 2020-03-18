@@ -45,10 +45,12 @@ test('custom selector', () =>
 
     let numberOfChanges = 0;
     let numberOfCustomChanges = 0;
+    let numberOfCustomNumberChanges = 0;
     let numberOfAnyChanges = 0;
 
     const unsub = store.subscribe((state) => state.counter, (state) => numberOfChanges++);
-    const unsubCustom = store.subscribe((state) => state, (state) => numberOfCustomChanges++, (prev, next) => next.counter === prev.counter);
+    const unsubCustom = store.subscribe((state) => state, (state) => numberOfCustomChanges++, (prev: State, next: State) => next.counter === prev.counter);
+    const unsubCustomNumbers = store.subscribe((state) => state.counter, (state) => numberOfCustomNumberChanges++, (prev: number, next: number) => next === prev);
     const unsubAny = store.subscribeAny((state) => numberOfAnyChanges++);
 
     store.execute(changeCounter(1));
@@ -56,6 +58,7 @@ test('custom selector', () =>
 
     expect(numberOfAnyChanges).toBe(2);
     expect(numberOfCustomChanges).toBe(2);
+    expect(numberOfCustomNumberChanges).toBe(2);
     expect(numberOfChanges).toBe(2);
 
     store.execute(changeCounter(0));
@@ -63,12 +66,14 @@ test('custom selector', () =>
 
     expect(numberOfAnyChanges).toBe(4);
     expect(numberOfCustomChanges).toBe(2);
+    expect(numberOfCustomNumberChanges).toBe(2);
     expect(numberOfChanges).toBe(2);
 
     store.execute((state) => null);
 
     expect(numberOfAnyChanges).toBe(4);
     expect(numberOfCustomChanges).toBe(2);
+    expect(numberOfCustomNumberChanges).toBe(2);
     expect(numberOfChanges).toBe(2);
 
     store.unsubscribeAll();
@@ -78,6 +83,7 @@ test('custom selector', () =>
 
     expect(numberOfAnyChanges).toBe(4);
     expect(numberOfCustomChanges).toBe(2);
+    expect(numberOfCustomNumberChanges).toBe(2);
     expect(numberOfChanges).toBe(2);
 
     unsub();
@@ -94,5 +100,6 @@ test('custom selector', () =>
 
     expect(numberOfAnyChanges).toBe(4);
     expect(numberOfCustomChanges).toBe(2);
+    expect(numberOfCustomNumberChanges).toBe(2);
     expect(numberOfChanges).toBe(2);
 });
