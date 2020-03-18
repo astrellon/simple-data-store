@@ -80,19 +80,20 @@ export type Modifier<TState> = (state: TState) => Partial<TState> | null;
 
 // A function that takes part of the state and returns a sub set of that state.
 // Used to look for specific parts of the state that have changed.
-export type Selector<TState> = (state: TState) => any;
+export type Selector<TState, TValue> = (state: TState) => TValue;
 
 // A function used to compare if two parts of the state have actually changed.
 // By default a strict equals is used when comparing however sometimes something more complex is needed.
-export type SelectorComparer<TState> = (prevValue: TState, newValue: TState) => boolean;
+// The TValue refers to the value returned by the Selector.
+export type SelectorComparer<TValue> = (prevValue: TValue, newValue: TValue) => boolean;
 
 // A callback function to be triggered when a selector has returned a new value.
 // The callback is given the new state and result of the selector that triggered the callback.
-export type Subscription<TState> = (state: TState, newValue: any, triggeringModifier: Modifier<TState>, isNewState: boolean) => void;
+// The TValue refers to the value returned by the Selector.
+export type Subscription<TState, TValue> = (state: TState, newValue: TValue, triggeringModifier: Modifier<TState>, isNewState: boolean) => void;
 
 // A function used to remove a subscription. This can be called multiple times.
 export type RemoveSubscription = () => void;
-
 ```
 
 ## DataStore
@@ -136,11 +137,11 @@ If the modifier returns the same state (as compared with strict equals) or null 
 the state is not updated nor is any subscription triggered.
 
 ### subscribe
-`selector: Selector<TState>` A function for picking the values out of the store you want to check when changed.
+`selector: Selector<TState, TValue>` A function for picking the values out of the store you want to check when changed.
 
-`subscription: Subscription<TState>` A callback that will be triggered when the values returned by the selector has changed.
+`subscription: Subscription<TState, TValue>` A callback that will be triggered when the values returned by the selector has changed.
 
-`comparer: SelectorComparer<TState>` An optional comparer for the old and new values in the selector. Defaults to strict equals.
+`comparer: SelectorComparer<TValue>` An optional comparer for the old and new values in the selector. Defaults to strict equals.
 
 `selectorName: string` An optional name for the selector, can be used to help identify the selector when debugging.
 
@@ -191,7 +192,7 @@ Number of age changes 2
 ```
 
 ### subscribeAny
-`subscription: Subscription<TState>` A callback that will be triggered when the state has changed.
+`subscription: Subscription<TState, TState>` A callback that will be triggered when the state has changed.
 
 `selectorName: string` An optional name for the selector, can be used to help identify the selector when debugging.
 

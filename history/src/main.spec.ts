@@ -1,4 +1,4 @@
-import DataStore from "simple-data-store";
+import DataStore from 'simple-data-store';
 import HistoryStore from ".";
 
 interface State
