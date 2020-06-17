@@ -54,10 +54,7 @@ export default class DataStore<TState>
      *
      * @returns The current state.
      */
-    public state(): Readonly<TState>
-    {
-        return this.currentState;
-    }
+    public state = (): Readonly<TState> => this.currentState;
 
     /**
      * Executes a modifier on the state.
@@ -96,20 +93,13 @@ export default class DataStore<TState>
         const obj = { selector: new SelectorContext(selector, startValue, comparer, selectorName), subscription };
         this.subscriptions.push(obj);
 
-        let removed = false;
         return () =>
         {
-            if (removed)
-            {
-                return;
-            }
-
             const index = this.subscriptions.indexOf(obj);
             if (index >= 0)
             {
                 this.subscriptions.splice(index, 1);
             }
-            removed = true;
         };
     }
 
@@ -178,10 +168,7 @@ class SelectorContext<TState, TValue>
      * @param state The state to get the value from.
      * @returns Whatever the selector returns.
      */
-    public getValue (state: TState): any
-    {
-        return this.selector(state);
-    }
+    public getValue = (state: TState): any => this.selector(state);
 
     /**
      * Check if the new value is different from the old one using the comparer.

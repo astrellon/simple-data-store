@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.2.2] 2020-06-17
+- Updated package versions.
+- Improved minifying arguments.
+
+## [3.2.0] 2020-03-18
+- Added some better typing for selectors.
+- Added a way to pass a debug name to selectors.
+
 ## [3.0.0] 2019-08-04
 - Moved history store into its own package.
 
