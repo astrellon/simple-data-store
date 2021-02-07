@@ -1,5 +1,8 @@
 # Changelog
 
+## [3.3.0] 2021-02-07
+- Updated all packages, primarily now using Typescript 4.
+
 ## [3.2.2] 2020-06-17
 - Updated package versions.
 - Improved minifying arguments.
