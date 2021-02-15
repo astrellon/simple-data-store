@@ -216,4 +216,4 @@ The main reason being that SimpleDataStore assumes that the state is always an o
 MIT
 
 ## Author
-Alan Lawrey 2020
+Alan Lawrey 2021
