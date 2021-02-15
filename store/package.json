@@ -1,6 +1,6 @@
 {
   "name": "simple-data-store",
-  "version": "3.3.0",
+  "version": "3.3.1",
   "description": "A simple data store for state management.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -11,7 +11,7 @@
   ],
   "repository": "github:astrellon/simple-data-store",
   "scripts": {
-    "build": "tsc && terser -c -m toplevel,reserved=['DataStore','EmptyModifier'] --mangle-props builtins,regex=/currentState\\|subscriptions\\|prevValue\\|selector\\|comparer\\|getValue\\|name\\|checkIfChanged/ -o dist/index.min.js --source-map filename=dist/input.js.map dist/index.js",
+    "build": "tsc && terser -c -m toplevel,reserved=['DataStore'] --mangle-props builtins,regex=/currentState\\|subscriptions\\|prevValue\\|selector\\|comparer\\|getValue\\|name\\|checkIfChanged\\|subscription\\|triggerSubscriptions/ -o dist/index.min.js --source-map filename=dist/input.js.map dist/index.js",
     "test": "jest",
     "coverage": "jest --coverage"
   },
